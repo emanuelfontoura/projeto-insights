@@ -1,5 +1,6 @@
 const conn = require('./db/conn.js')
 const express = require('express')
+const cors = require('cors')
 const app = express()
 require('dotenv').config()
 
@@ -7,10 +8,13 @@ require('dotenv').config()
 const SECRET = process.env.JWT_SECRET
 
 // importação das rotas
-const authRoutes = require('./routes/authRoutes.js')
+const userRoutes = require('./routes/userRoutes.js')
 
-// implementação das rotas
-app.use('', authRoutes)
+// configurando o CORS
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:3000' 
+}))
 
 // middleware para conversão da requisição entre objeto js e json
 app.use(express.urlencoded({
@@ -18,13 +22,18 @@ app.use(express.urlencoded({
 }))
 app.use(express.json())
 
+// implementação das rotas
+// rotas de usuário (auth)
+app.use('/user', userRoutes)
+
 // middleware para definir path de arquivos estáticos
 app.use(express.static('public'))
 
 // conexão e sincronização do banco de dados
 conn.sync()
+//conn.sync({force: true})
 .then(() => {
-    const port = 3000
+    const port = 5000
     app.listen(port)
     console.log(`Servidor conectado na porta ${port}`)
 })
