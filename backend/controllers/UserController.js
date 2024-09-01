@@ -1,7 +1,9 @@
 const bcrypt = require('bcrypt')
-const createUserToken = require('../helpers/check-user-token.js')
-require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const createUserToken = require('../helpers/create-user-token.js')
+const getTokenHeader = require('../helpers/get-token-header.js')
 const User = require('../models/User.js')
+require('dotenv').config()
 
 const SECRET = process.env.JWT_SECRET
 
@@ -125,5 +127,49 @@ module.exports = class AuthController{
                 errorMessage: error
             })
         }
+    }
+
+    static async checkUserToken(req, res){
+        let currentUser, token, decoded
+        try{
+            token = getTokenHeader(req)
+            decoded = jwt.verify(token, SECRET)
+        }catch(error){
+            res.status(401).json({
+                statusCode: 401,
+                message: 'Malformed token',
+                errorMessage: error.message
+            })
+            return
+        }
+        if(token){
+            currentUser = await User.findByPk(decoded.id, {attributes: {exclude: ['password']}})
+        }else{
+            currentUser = null
+        }
+        res.status(200).json({
+            statusCode: 200,
+            currentUser
+        })
+    }
+
+    static async getUserById(req, res){
+        const id = req.params.id
+        const user = await User.findByPk(id, {attributes: {exclude: ['password']}})
+        if(!user){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'User not found'
+            })
+            return
+        }
+        res.status(200).json({
+            statusCode: 200,
+            user
+        })
+    }
+
+    static async editUser(req, res){
+        res.status(200).send('deu certo')
     }
 }
