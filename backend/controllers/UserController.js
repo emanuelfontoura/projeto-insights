@@ -11,7 +11,7 @@ const SECRET = process.env.JWT_SECRET
 module.exports = class AuthController{
 
     static async register(req, res){
-        const {username, email, password, phone, confirmPassword} = req.body
+        const {username, email, password, phone, confirmPassword, user} = req.body
         if(password !== confirmPassword){
             res.status(422).json({
                 statusCode: 422,
@@ -19,15 +19,14 @@ module.exports = class AuthController{
             })
             return
         }
+        if(user){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'Register unsuccessful. Cause: the email already exists in this database',
+            })
+            return
+        }
         try{
-            const userExists = await User.findOne({where: {email}})
-            if(userExists){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: the email already exists in this database',
-                })
-                return
-            }
             const salt = await bcrypt.genSalt(10)
             const hashedPassword = await bcrypt.hash(password, salt)
             const userAdded = await User.create({
@@ -53,16 +52,8 @@ module.exports = class AuthController{
     }
 
     static async login(req, res){
-        const {email, password} = req.body
+        const {password, user} = req.body
         try{
-            const user = await User.findOne({where:{email}})
-            if(!user){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Login unsuccessful. Cause: user not exists'
-                })
-                return
-            }
             const matchedPassword = await bcrypt.compare(password, user.password)
             if(!matchedPassword){
                 res.status(422).json({
@@ -106,15 +97,7 @@ module.exports = class AuthController{
     }
 
     static async getUserById(req, res){
-        const id = req.params.id
-        const user = await User.findByPk(id, {attributes: {exclude: ['password']}})
-        if(!user){
-            res.status(422).json({
-                statusCode: 422,
-                message: 'User not found'
-            })
-            return
-        }
+        const user = req.body.user
         res.status(200).json({
             statusCode: 200,
             user

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const getTokenHeader = require('./get-token-header')
+const getTokenHeader = require('../helpers/get-token-header')
 require('dotenv').config()
 
 const SECRET = process.env.JWT_SECRET
