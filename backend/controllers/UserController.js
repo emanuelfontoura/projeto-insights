@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const createUserToken = require('../helpers/create-user-token.js')
 const getTokenHeader = require('../helpers/get-token-header.js')
 const User = require('../models/User.js')
+
 require('dotenv').config()
 
 const SECRET = process.env.JWT_SECRET
@@ -11,49 +12,14 @@ module.exports = class AuthController{
 
     static async register(req, res){
         const {username, email, password, phone, confirmPassword} = req.body
+        if(password !== confirmPassword){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'Password and confirm password are differents'
+            })
+            return
+        }
         try{
-            if(!username){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: username not filled'
-                })
-                return
-            }
-            if(!email){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: email not filled'
-                })
-                return
-            }
-            if(!password){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: password not filled'
-                })
-                return
-            }
-            if(!phone){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: phone not filled'
-                })
-                return
-            }
-            if(!confirmPassword){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: password confirmation not filled'
-                })
-                return
-            }
-            if(confirmPassword !== password){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Register unsuccessful. Cause: password confirmation and password must be the same'
-                })
-                return
-            }
             const userExists = await User.findOne({where: {email}})
             if(userExists){
                 res.status(422).json({
@@ -88,20 +54,6 @@ module.exports = class AuthController{
 
     static async login(req, res){
         const {email, password} = req.body
-        if(!email){
-            res.status(422).json({
-                statusCode: 422,
-                message: 'Login unsuccessful. Cause: email is not filled'
-            })
-            return
-        }
-        if(!password){
-            res.status(422).json({
-                statusCode: 422,
-                message: 'Login unsuccessful. Cause: password is not filled'
-            })
-            return
-        }
         try{
             const user = await User.findOne({where:{email}})
             if(!user){
@@ -170,6 +122,21 @@ module.exports = class AuthController{
     }
 
     static async editUser(req, res){
-        res.status(200).send('deu certo')
+        const id = req.params.id
+        const {username, email, phone, password, confirmPassword} = req.body
+        const nullFields = verifyNullFields([['username', username], ['email', email], ['phone', phone], 
+            ['password', password], ['confirmPassword', confirmPassword]])
+        if(nullFields.length > 0){
+            res.status(422)
+        }
+        const user = await User.findByPk(id)
+        if(!user){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'User not found'
+            })
+            return
+        }
+
     }
 }
