@@ -10,6 +10,7 @@ const verifyToken = (req, res, next) => {
             statusCode: 401,
             message: 'Access denied'
         })
+        return
     }
     const token = getTokenHeader(req)
     if(!token){
@@ -17,6 +18,7 @@ const verifyToken = (req, res, next) => {
             statusCode: 401,
             message: 'Access denied'
         })
+        return
     }
     try{
         const verified = jwt.verify(token, SECRET)

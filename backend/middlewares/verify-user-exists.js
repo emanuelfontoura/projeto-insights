@@ -11,8 +11,8 @@ const verifyUserExists = async (req, res, next) => {
             statusCode: 422,
             message: 'Email or id is required to verify the user'
         })
+        return
     }
-    console.log(identifier)
     try{
         const user = await User.findOne({where: {...identifier}})
         if(!user){
@@ -22,7 +22,6 @@ const verifyUserExists = async (req, res, next) => {
             })
             return
         }
-        req.body.user = user
         next()
     }catch(error){
         res.status(500).json({

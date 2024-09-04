@@ -9,6 +9,6 @@ router.post('/login', verifyNullFields, verifyUserExists, UserController.login)
 router.post('/register', verifyNullFields, verifyUserExists, UserController.register)
 router.post('/check', UserController.checkUserToken)
 router.get('/:id', verifyUserExists, UserController.getUserById)
-router.patch('/edit/:id', verifyToken, verifyNullFields, UserController.editUser)
+router.patch('/edit/:id', verifyToken, verifyUserExists, verifyNullFields, UserController.editUser)
 
 module.exports = router
