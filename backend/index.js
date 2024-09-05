@@ -2,13 +2,14 @@ const conn = require('./db/conn.js')
 const express = require('express')
 const cors = require('cors')
 const app = express()
-require('dotenv').config()
 
-// variáveis do .env
-const SECRET = process.env.JWT_SECRET
+// importação dos models
+const User = require('./models/User.js')
+const Insight = require('./models/Insight.js')
 
 // importação das rotas
 const userRoutes = require('./routes/userRoutes.js')
+const insightsRoutes = require('./routes/insightRoutes.js')
 
 // configurando o CORS
 app.use(cors({
@@ -25,13 +26,14 @@ app.use(express.json())
 // implementação das rotas
 // rotas de usuário (auth)
 app.use('/user', userRoutes)
+app.use('/insights', insightsRoutes)
 
 // middleware para definir path de arquivos estáticos
 app.use(express.static('public'))
 
 // conexão e sincronização do banco de dados
-conn.sync()
-//conn.sync({force: true})
+//conn.sync()
+conn.sync({force: true})
 .then(() => {
     const port = 5000
     app.listen(port)
