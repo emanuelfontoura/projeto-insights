@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
     }
     try{
         const verified = jwt.verify(token, SECRET)
-        req.body.userId = verified.id
+        req.body.userId = verified.userId
         next()
     }catch(error){
         res.status(400).json({

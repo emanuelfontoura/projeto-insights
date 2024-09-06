@@ -2,8 +2,8 @@ const User = require("../models/User")
 
 const verifyUserExists = async (req, res, next) => {
     let identifier
-    if(req.params.id){
-        identifier = {id: req.params.id}
+    if(req.params.userId){
+        identifier = {userId: req.params.userId}
     }else if(req.body.email){
         identifier = {email: req.body.email}
     }else{

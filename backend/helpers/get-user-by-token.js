@@ -6,8 +6,8 @@ const SECRET = process.env.JWT_SECRET
 
 const getUserByToken = async (token) => {
     const decoded = jwt.verify(token, SECRET)
-    const id = decoded.id
-    const user = await User.findByPk(id)
+    const userId = decoded.userId
+    const user = await User.findByPk(userId)
     return user
 }
 

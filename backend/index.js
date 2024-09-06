@@ -32,8 +32,8 @@ app.use('/insights', insightsRoutes)
 app.use(express.static('public'))
 
 // conexão e sincronização do banco de dados
-//conn.sync()
-conn.sync({force: true})
+conn.sync()
+//conn.sync({force: true})
 .then(() => {
     const port = 5000
     app.listen(port)

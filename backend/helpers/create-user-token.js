@@ -3,14 +3,14 @@ require('dotenv').config()
 
 const SECRET = process.env.JWT_SECRET
 
-const createUserToken = async (user, res) => {
+const createUserToken = (user, res) => {
     try{
-        const token = jwt.sign({id:user.id, username: user.username}, SECRET, {expiresIn: '1h'})
+        const token = jwt.sign({userId:user.userId, username: user.username}, SECRET, {expiresIn: '1h'})
         res.status(200).json({
             statusCode: 200,
             message: 'Successful authentication',
             token: token,
-            userId: user.id
+            userId: user.userId
         })
     }catch(error){
         res.status(500).json({

@@ -136,7 +136,7 @@ module.exports = class AuthController{
                 })
                 return
             }
-            await User.update({email}, {where:{id: userId}})
+            await User.update({email}, {where:{userId: userId}})
             res.status(200).json({
                 statusCode: 200,
                 message: 'Email updated successfully',
@@ -172,7 +172,7 @@ module.exports = class AuthController{
             }
             const salt = await bcrypt.genSalt(10)
             const hashedPassword = await bcrypt.hash(newPassword, salt)
-            await User.update({password: hashedPassword}, {where: {id: userId}})
+            await User.update({password: hashedPassword}, {where: {userId: userId}})
             res.status(200).json({
                 statusCode: 200,
                 message: 'Password updated successfully',
@@ -189,10 +189,38 @@ module.exports = class AuthController{
     static async editUserInfos(req, res){
         const {username, phone, userId} = req.body
         try{
-            await User.update({username, phone}, {where: {id:userId}})
+            await User.update({username, phone}, {where: {userId:userId}})
             res.status(200).json({
                 statusCode: 200,
                 message: 'Information updated successfully'
+            })
+        }catch(error){
+            res.status(500).json({
+                statusCode: 500,
+                message: 'An error ocurred',
+                errorMessage: error.message
+            })
+        }
+    }
+
+    static async resetUserPassword(req, res){
+        const {newPassword, userId} = req.body
+        const user = await User.findByPk(userId)
+        const matchedPassword = await bcrypt.compare(newPassword, user.password)
+        if(matchedPassword){
+            res.status(422).json({
+                statusCode: 422,
+                message: "The new password cannot be the same as the old one"
+            })
+            return
+        }
+        try{
+            const salt = await bcrypt.genSalt(10)
+            const hashedPassword = await bcrypt.hash(newPassword, salt)
+            await User.update({password: hashedPassword}, {where: {userId: userId}})
+            res.status(200).json({
+                statusCode: 200,
+                message: 'New password set successfully'
             })
         }catch(error){
             res.status(500).json({
