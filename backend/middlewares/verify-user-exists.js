@@ -22,6 +22,7 @@ const verifyUserExists = async (req, res, next) => {
             })
             return
         }
+        req.body.user = user
         next()
     }catch(error){
         res.status(500).json({

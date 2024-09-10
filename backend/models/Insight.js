@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize')
-const db = require('../db/conn.js')
+const db = require('../database/conn.js')
 const User = require('./User.js')
 
 const Insight = db.define('Insight', {

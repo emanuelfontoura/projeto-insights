@@ -230,4 +230,27 @@ module.exports = class AuthController{
             })
         }
     }
+
+    static async confirmUserEmail(req, res){
+        const {email} = req.body
+        try{
+            const oldUser = await User.findOne({where: {email}})
+            if(!oldUser){
+                res.status(422).json({
+                    statusCode: 422,
+                    message: 'This user not exists'
+                })
+                return
+            }
+            const token = jwt.sign({email: oldUser.email, userId: oldUser.userId}, `${SECRET}${oldUser.password}`, {expiresIn: "5m"})
+            const link = `http://localhost:5000/reset-password/${oldUser.id}/${token}`
+            console.log(link)
+        }catch(error){
+            res.status(500).json({
+                statusCode: 500,
+                message: 'An error ocurred',
+                errorMessage: error.message
+            })
+        }
+    }
 }
