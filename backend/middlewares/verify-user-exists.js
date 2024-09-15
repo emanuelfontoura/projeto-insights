@@ -6,6 +6,8 @@ const verifyUserExists = async (req, res, next) => {
         identifier = {userId: req.params.userId}
     }else if(req.body.email){
         identifier = {email: req.body.email}
+    }else if(req.body.user){
+        identifier = {userId: req.body.userId}
     }else{
         res.status(422).json({
             statusCode: 422,
@@ -14,7 +16,7 @@ const verifyUserExists = async (req, res, next) => {
         return
     }
     try{
-        const user = await User.findOne({where: {...identifier}})
+        const user = await User.findOne({where: {...identifier}, attributes:{exclude: ['password']}})
         if(!user){
             res.status(422).json({
                 statusCode: 422,

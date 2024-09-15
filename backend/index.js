@@ -7,6 +7,7 @@ require('dotenv').config()
 // importação dos models
 const User = require('./models/User.js')
 const Insight = require('./models/Insight.js')
+const UserOTPVerification = require('./models/UserOTPVerification.js')
 
 // importação das rotas
 const userRoutes = require('./routes/userRoutes.js')
@@ -34,7 +35,7 @@ app.use(express.static('public'))
 
 // conexão e sincronização do banco de dados
 conn.sync()
-//conn.sync({force: true})
+// conn.sync({force: true})
 .then(() => {
     const port = 5000
     app.listen(port)

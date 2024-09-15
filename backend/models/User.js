@@ -28,6 +28,10 @@ const User = db.define('User', {
         type: DataTypes.STRING,
         required: false,
         allowNull: true
+    },
+    verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 })
 

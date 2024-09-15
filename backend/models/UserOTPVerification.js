@@ -10,5 +10,12 @@ const UserOTPVerification = db.define('UserOTPVerification', {
         type: DataTypes.STRING,
         allowNull: false,
         required: true
+    },
+    expiresAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        required: true
     }
 })
+
+module.exports = UserOTPVerification
