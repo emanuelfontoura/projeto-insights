@@ -92,40 +92,6 @@ module.exports = class AuthController{
         }
     }
 
-    static async editUserEmail(req, res){
-        const {email, confirmEmail, password, userId} = req.body
-        if(email !== confirmEmail){
-            res.status(422).json({
-                statusCode: 422,
-                message: 'Email and confirm email are different'
-            })
-            return
-        }
-        try{
-            const user = await User.findByPk(userId)
-            const matchedPassword = await bcrypt.compare(password, user.password)
-            if(!matchedPassword){
-                res.status(422).json({
-                    statusCode: 422,
-                    message: 'Invalid password'
-                })
-                return
-            }
-            await User.update({email}, {where:{userId: userId}})
-            res.status(200).json({
-                statusCode: 200,
-                message: 'Email updated successfully',
-                newEmail: email
-            })
-        }catch(error){
-            res.status(500).json({
-                statusCode: 500,
-                message: 'An error ocurred',
-                errorMessage: error.message
-            })
-        }
-    }
-
     static async editUserInfos(req, res){
         const {username, phone, userId} = req.body
         try{
@@ -148,6 +114,6 @@ module.exports = class AuthController{
     }
 
     static async confirmUserEmail(req, res){
-
+        
     }
 }

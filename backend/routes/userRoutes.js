@@ -8,8 +8,7 @@ const router = express.Router()
 router.post('/login', verifyNullFields, verifyUserExists, UserController.login)
 router.post('/register', verifyNullFields, UserController.register)
 router.get('/dashboard', verifyToken, UserController.getUserData)
-router.patch('/reset-password', verifyToken, verifyNullFields, UserController.resetUserPassword)
-router.patch('/edit-email', verifyToken, verifyNullFields, UserController.editUserEmail)
 router.patch('/edit-infos', verifyToken, UserController.editUserInfos)
+router.post('/confirm-email', verifyToken, verifyNullFields, verifyUserExists, UserController.confirmUserEmail)
 
 module.exports = router
