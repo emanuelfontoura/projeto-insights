@@ -1,7 +1,8 @@
-const conn = require('./db/conn.js')
+const conn = require('./database/conn.js')
 const express = require('express')
 const cors = require('cors')
 const app = express()
+require('dotenv').config()
 
 // importação dos models
 const User = require('./models/User.js')

@@ -3,11 +3,8 @@ const jwt = require('jsonwebtoken')
 const createUserToken = require('../helpers/create-user-token.js')
 const getTokenHeader = require('../helpers/get-token-header.js')
 const getUserByToken = require('../helpers/get-user-by-token.js')
+const transporter = require('../nodemailer.js')
 const User = require('../models/User.js')
-
-require('dotenv').config()
-
-const SECRET = process.env.JWT_SECRET
 
 module.exports = class AuthController{
 
@@ -37,6 +34,12 @@ module.exports = class AuthController{
                 password: hashedPassword,
                 phone
             })
+            await transporter.sendMail({
+                from: 'teste@gmail.com',
+                to: email,
+                subject: 'Conta criada com sucesso',
+                text: 'Sua conta foi criada com sucesso!'
+            })
             res.status(201).json({
                 statusCode: 201,
                 message: 'Register successful',
@@ -48,7 +51,7 @@ module.exports = class AuthController{
             res.status(401).json({
                 statusCode: 401,
                 message: 'Regiser unsuccessful',
-                errorMessage: (error['original'] && error['original']['sqlMessage']) || error
+                errorMessage: error.message
             })
         }
     }
@@ -114,6 +117,6 @@ module.exports = class AuthController{
     }
 
     static async confirmUserEmail(req, res){
-        
+
     }
 }
