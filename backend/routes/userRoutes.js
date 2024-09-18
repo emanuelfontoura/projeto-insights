@@ -9,6 +9,7 @@ router.post('/login', verifyNullFields, verifyUserExists, UserController.login)
 router.post('/register', verifyNullFields, UserController.register)
 router.get('/dashboard', verifyToken, UserController.getUserData)
 router.patch('/edit-infos', verifyToken, UserController.editUserInfos)
+router.post('/verify-email', verifyToken, verifyNullFields, verifyUserExists, UserController.verifyUserEmail)
 router.post('/verify-email-code', verifyToken, verifyNullFields, verifyUserExists, UserController.verifyUserEmailCode)
 
 module.exports = router

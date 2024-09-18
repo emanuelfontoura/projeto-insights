@@ -98,8 +98,13 @@ module.exports = class AuthController{
         }
     }
 
+    static async verifyUserEmail(req, res){
+        const {user} = req.body
+        await sendOTPEmailVerification(user, res)
+    }
+
     static async resetUserPassword(req, res){
-        
+        const {oldPassword, newPassword, confirmNewPassword, otp} = req.body
     }
 
     static async verifyUserEmailCode(req, res){
