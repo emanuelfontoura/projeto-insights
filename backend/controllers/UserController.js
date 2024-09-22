@@ -64,7 +64,6 @@ module.exports = class AuthController{
         try{
             const user = await User.findOne({where: {email}})
             const userVerified = await UserOTPVerification.findOne({where: {email}})
-            console.log(userVerified)
             if(user){
                 res.status(422).json({
                     statusCode: 422,
@@ -87,7 +86,7 @@ module.exports = class AuthController{
                 password: hashedPassword,
                 phone
             })
-            userAdded.password = null
+            userAdded.password = 'Removed from response for safety'
             res.status(200).json({
                 statusCode: 200,
                 message: 'User registered successfully.',
