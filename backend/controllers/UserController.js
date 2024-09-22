@@ -6,6 +6,52 @@ const UserOTPVerification = require('../models/UserOTPVerification.js')
 
 module.exports = class AuthController{
 
+    static async sendVerifyEmailRegister(req, res){
+        const {email} = req.body
+        await sendOTPEmailVerification(email, res)
+    }
+
+    static async verifyEmailOtpCodeRegister(req, res){
+        const {email, otp} = req.body
+        const userOTPVerificationRecords = await UserOTPVerification.findOne({where: {email}})
+        if(!userOTPVerificationRecords){
+            res.status(422).json({
+                statusCode: 422,
+                message: "Account record doesn't exist."
+            })
+            return
+        }
+        if(userOTPVerificationRecords.verified){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'User already verified. Log in or recover your password.'
+            })
+            return
+        }
+        const expiresAt = userOTPVerificationRecords.expiresAt
+        const hashedOTP = userOTPVerificationRecords.otp
+        if(expiresAt < Date.now()){
+            res.status(422).json({
+                statusCode: 422,
+                message: 'User code has expired. Please, request again.'
+            })
+            return
+        }
+        const matchedOTP = await bcrypt.compare(otp, hashedOTP)
+        if(!matchedOTP){
+            res.json({
+                status: 'NOT VERIFIED',
+                message: 'Invalid code passed. Check your inbox.'
+            })
+            return
+        }
+        await UserOTPVerification.update({verified: true}, {where: {email}})
+        res.json({
+            status: 'VERIFIED',
+            message: 'Email confirmed successfully.'
+        })
+    }
+
     static async register(req, res){
         const {username, email, password, phone, confirmPassword} = req.body
         if(password !== confirmPassword){
@@ -17,6 +63,8 @@ module.exports = class AuthController{
         }
         try{
             const user = await User.findOne({where: {email}})
+            const userVerified = await UserOTPVerification.findOne({where: {email}})
+            console.log(userVerified)
             if(user){
                 res.status(422).json({
                     statusCode: 422,
@@ -26,13 +74,27 @@ module.exports = class AuthController{
             }
             const salt = await bcrypt.genSalt(10)
             const hashedPassword = await bcrypt.hash(password, salt)
+            if(!userVerified.verified){
+                res.status(422).json({
+                    statusCode: 422,
+                    message: 'Check your email to register.'
+                })
+                return
+            }
             const userAdded = await User.create({
                 username,
                 email,
                 password: hashedPassword,
                 phone
             })
-            await sendOTPEmailVerification(userAdded, res)
+            userAdded.password = null
+            res.status(200).json({
+                statusCode: 200,
+                message: 'User registered successfully.',
+                data: {
+                    userAdded
+                }
+            })
         }catch(error){
             res.status(401).json({
                 statusCode: 401,
@@ -96,48 +158,5 @@ module.exports = class AuthController{
                 errorMessage: error.message
             })
         }
-    }
-
-    static async verifyUserEmail(req, res){
-        const {user} = req.body
-        await sendOTPEmailVerification(user, res)
-    }
-
-    static async resetUserPassword(req, res){
-        const {oldPassword, newPassword, confirmNewPassword, otp} = req.body
-    }
-
-    static async verifyUserEmailCode(req, res){
-        let {user, otp} = req.body
-        const userOTPVerificationRecords = await UserOTPVerification.findByPk(user.userId)
-        if(!userOTPVerificationRecords){
-            res.status(422).json({
-                statusCode: 422,
-                message: "Account record doesn't exist or has been verified already. Please, sign up or log in."
-            })
-            return
-        }
-        const expiresAt = userOTPVerificationRecords.expiresAt
-        const hashedOTP = userOTPVerificationRecords.otp
-        if(expiresAt < Date.now()){
-            res.status(422).json({
-                statusCode: 422,
-                message: 'User code has expired. Please, request again.'
-            })
-            return
-        }
-        const matchedOTP = await bcrypt.compare(otp, hashedOTP)
-        if(!matchedOTP){
-            res.json({
-                status: 'NOT VERIFIED',
-                message: 'Invalid code passed. Check your inbox.'
-            })
-            return
-        }
-        await User.update({verified: true}, {where: {userId: user.userId}})
-        res.json({
-            status: 'VERIFIED',
-            message: 'Email confirmed successfully.'
-        })
     }
 }

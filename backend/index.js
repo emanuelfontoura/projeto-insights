@@ -28,7 +28,7 @@ app.use(express.json())
 // implementação das rotas
 // rotas de usuário (auth)
 app.use('/user', userRoutes)
-app.use('/insights', insightsRoutes)
+app.use('/insight', insightsRoutes)
 
 // middleware para definir path de arquivos estáticos
 app.use(express.static('public'))
