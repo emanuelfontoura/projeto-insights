@@ -4,10 +4,11 @@ const cors = require('cors')
 const app = express()
 require('dotenv').config()
 
+const PORT = process.env.PORT
+
 // importação dos models
 const User = require('./models/User.js')
 const Insight = require('./models/Insight.js')
-const UserOTPVerification = require('./models/UserOTPVerification.js')
 
 // importação das rotas
 const userRoutes = require('./routes/userRoutes.js')
@@ -37,11 +38,10 @@ app.use(express.static('public'))
 conn.sync()
 // conn.sync({force: true})
 .then(() => {
-    const port = 5000
-    app.listen(port)
-    console.log(`Servidor conectado na porta ${port}`)
+    app.listen(PORT)
+    console.log(`Servidor conectado na porta ${PORT}`)
 })
 .catch(error => {
     console.log('Erro ao tentar sincronizar o banco de dados!')
-    console.log( error)
+    console.log(error)
 })
