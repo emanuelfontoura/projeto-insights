@@ -29,10 +29,11 @@ module.exports = class AuthController{
             }
             username = decoded.username
             email = decoded.email
-            password = decoded.hashedPassword
+            password = decoded.password
             phone = decoded.phone
         })
         try{
+
             const userAdded = await User.create({username, email, password, phone})
             userAdded.password = 'protected'
             res.status(200).json({
@@ -71,10 +72,10 @@ module.exports = class AuthController{
             }
             const salt = await bcrypt.genSalt(10)
             const hashedPassword = await bcrypt.hash(password, salt)
-            const token = jwt.sign({username, email, hashedPassword, phone}, SECRET, {expiresIn: '1h'})
+            const token = jwt.sign({username, email, password: hashedPassword, phone}, SECRET, {expiresIn: '1h'})
             const link = `http://localhost:${PORT}/confirm-email?token=${token}`
             const mailOptions = {
-                from: 'germaine94@ethereal.email',
+                from: EMAIL_USER,
                 to: email,
                 subject: 'Confirm your email',
                 html: `
@@ -119,14 +120,76 @@ module.exports = class AuthController{
         }
     }
 
-    static async sendEmailRecoveryPassword(req, res){
+    static async sendEmailResetPassword(req, res){
         const {email, user} = req.body
         try{
-
+            const token = jwt.sign({userId: user.userId, email, password: user.password}, SECRET, {expiresIn: '1h'})
+            const link = `http://localhost:${PORT}/confirm-email-reset-password?token=${token}`
+            await transporter.sendMail({
+                from: EMAIL_USER,
+                to: email,
+                subject: 'Confirm your email to reset password',
+                html: `
+                <h1>Confirm your email and reset password</h1>
+                <p>Click <a href='${link}' target='blank' >here</a> to confirm your email and reset password.</p>
+            `
+            })
+            res.status(200).json({
+                statusCode: 200,
+                statusEmail: 'PENDING',
+                message: 'Email sent successfully. Check your inbox.'
+            })
         }catch(error){
             res.status(500).json({
                 statusCode: 500,
-                message: 'An error ocurred.',
+                message: 'An error occurred while sending the email. Try again!',
+                errorMessage: error.message
+            })
+        }
+    }
+
+    static async confirmEmailResetPassword(req, res){
+        const token = req.query.token
+        const decoded = jwt.verify(token, SECRET, (err, dec) => {
+            if(err){
+                res.status(500).json({
+                    statusCode: 500,
+                    message: 'An error occurred while trying to decode the token.',
+                    errorMessage: err.message
+                })
+            }
+            return dec
+        })
+        res.status(200).json({
+            statusCode: 200,
+            statusEmail: 'VERIFIED',
+            data: {
+                decoded
+            }
+        })
+    }
+
+    static async setNewPassword(req, res){
+        const {email, newPassword, confirmNewPassword} = req.body
+        if(newPassword !== confirmNewPassword){
+            res.status(400).json({
+                statusCode: 400,
+                message: 'Password and password confirmation do not match.'
+            })
+            return
+        }
+        try{
+            const salt = await bcrypt.genSalt(10)
+            const hashedPassword = await bcrypt.hash(newPassword, salt)
+            await User.update({password: hashedPassword}, {where: {email}})
+            res.status(200).json({
+                statusCode: 200,
+                message: 'Password changed successfully.'
+            })
+        }catch(error){
+            res.status(500).json({
+                statusCode: 500,
+                message: 'An error occurred when trying to change the password.',
                 errorMessage: error.message
             })
         }

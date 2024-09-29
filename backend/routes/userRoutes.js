@@ -8,5 +8,8 @@ const router = express.Router()
 router.get('/confirm-email', UserController.confirmEmailRegister)
 router.post('/register', verifyNullFields, UserController.register)
 router.post('/login', verifyNullFields, verifyUserExists, UserController.login)
+router.post('/send-email-reset-password', verifyNullFields, verifyUserExists, UserController.sendEmailResetPassword)
+router.get('/confirm-email-reset-password', UserController.confirmEmailResetPassword)
+router.post('/reset-password', verifyNullFields, UserController.setNewPassword)
 
 module.exports = router
