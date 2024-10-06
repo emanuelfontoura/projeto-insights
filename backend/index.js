@@ -9,6 +9,7 @@ const PORT = process.env.PORT
 // importação dos models
 const User = require('./models/User.js')
 const Insight = require('./models/Insight.js')
+const ResetPasswordsToken = require('./models/ResetPasswordsToken.js')
 
 // importação das rotas
 const userRoutes = require('./routes/userRoutes.js')

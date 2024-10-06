@@ -1,8 +1,10 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const transporter = require('../nodemailer.js')
+const { literal } = require('sequelize')
 const createUserToken = require('../helpers/create-user-token.js')
 const User = require('../models/User.js')
+const ResetPasswordsToken = require('../models/ResetPasswordsToken.js')
 require('dotenv').config()
 
 const SECRET = process.env.JWT_SECRET
@@ -123,7 +125,7 @@ module.exports = class AuthController{
     static async sendEmailResetPassword(req, res){
         const {email, user} = req.body
         try{
-            const token = jwt.sign({userId: user.userId, email, password: user.password}, SECRET, {expiresIn: '1h'})
+            const token = jwt.sign({userId: user.userId}, SECRET)
             const link = `http://localhost:${PORT}/confirm-email-reset-password?token=${token}`
             await transporter.sendMail({
                 from: EMAIL_USER,
@@ -160,12 +162,16 @@ module.exports = class AuthController{
             }
             return dec
         })
+        console.log(decoded)
+        const userToken = await ResetPasswordsToken.findOne({where: {userId: decoded.userId}})
+        if(userToken){
+            await ResetPasswordsToken.update({token, expires_at: Date.now() + 3600000, generatedTokens: literal('generatedTokens + 1')}, {where: {userId: decoded.userId}})
+        }else{
+            await ResetPasswordsToken.create({token: token, expires_at: Date.now() + 3600000, generatedTokens: 1, userId: decoded.userId})
+        }
         res.status(200).json({
             statusCode: 200,
-            statusEmail: 'VERIFIED',
-            data: {
-                decoded
-            }
+            statusEmail: 'VERIFIED'
         })
     }
 
@@ -179,13 +185,30 @@ module.exports = class AuthController{
             return
         }
         try{
+            const user = await User.findOne({
+                where: {email},
+                attributes: ['userId']
+            })
+            const token = await ResetPasswordsToken.findOne({where: {userId: user.userId}})
             const salt = await bcrypt.genSalt(10)
             const hashedPassword = await bcrypt.hash(newPassword, salt)
-            await User.update({password: hashedPassword}, {where: {email}})
-            res.status(200).json({
-                statusCode: 200,
-                message: 'Password changed successfully.'
-            })
+            if(!token){
+                res.status(400).json({
+                    statusCode: 400,
+                    message: 'You need to check your email first!'
+                })
+            }else if(Date.now() > token.expires_at){
+                res.status(400).json({
+                    statusCode: 400,
+                    message: 'This token has passed its valid time. Generate another token and try again!'
+                })
+            }else{
+                await User.update({password: hashedPassword}, {where: {email}})
+                res.status(200).json({
+                    statusCode: 200,
+                    message: 'Password changed successfully.'
+                })
+            }
         }catch(error){
             res.status(500).json({
                 statusCode: 500,
